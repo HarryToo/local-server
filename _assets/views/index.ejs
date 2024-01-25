@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>local-server</title>
+  <link rel="stylesheet" href="/_assets/styles/index.css">
+</head>
+<body>
+  <% if (files.length > 0) { %>
+    <ul>
+      <% files.forEach(function(item) { %>
+        <li><%= item.name %></li>
+      <% }) %>
+    </ul>
+  <% } else { %>
+    <p class="empty-tips">no file</p>
+  <% } %>
+</body>
+</html>
