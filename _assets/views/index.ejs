@@ -1,20 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>local-server</title>
+  <link rel="icon" href="/_assets/favicon.ico">
   <link rel="stylesheet" href="/_assets/styles/index.css">
 </head>
 <body>
-  <% if (files.length > 0) { %>
-    <ul>
-      <% files.forEach(function(item) { %>
-        <li><%= item.name %></li>
-      <% }) %>
-    </ul>
-  <% } else { %>
-    <p class="empty-tips">no file</p>
-  <% } %>
+  <div class="breadcrumb">
+    <a href="/" title="<%= cwd %>">🏠</a>
+    <% breadcrumb.forEach(function(nav, index) { %>
+      <span class="delimiter">/</span>
+      <% if (index < breadcrumb.length - 1) { %>
+        <a href="<%= nav.href %>" class="nav"><%= nav.name %></a>
+      <% } else { %>
+        <span><%= nav.name %></span>
+      <% } %>
+    <% }) %>
+  </div>
+  <table cellspacing="0">
+    <thead>
+      <tr>
+        <th style="width: 46%;">Name</th>
+        <th>Size</th>
+        <th style="width: 15%;">Creation Time</th>
+        <th style="width: 15%;">Update Time</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (files.length > 0) { %>
+        <% files.forEach(function(item) { %>
+          <tr>
+            <td>
+              <a href="<%= item.href %>">
+                <img src="<%= item.iconPath %>" class="file-icon">
+                <span><%= item.name %></span>
+              </a>
+            </td>
+            <td><%= item.size || '-' %></td>
+            <td><%= new Date(item.createTime).toLocaleString() %></td>
+            <td><%= new Date(item.updateTime).toLocaleString() %></td>
+            <td class="buttons">
+              <% if (!item.isDirectory) { %>
+                <button onclick="location.href = '<%= item.href %>?attachment'">Download</button>
+              <% } %>
+              <button href="">QRCode</button>
+            </td>
+          </tr>
+        <% }) %>
+      <% } else { %>
+        <tr>
+          <td colspan="4" class="empty-tips">no file</td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
 </body>
 </html>

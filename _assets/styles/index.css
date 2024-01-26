@@ -3,3 +3,111 @@
   margin: 0;
   padding: 0;
 }
+
+a {
+  color: unset;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+body {
+  font-size: 16px;
+  color: #333;
+  background-color: #fff;
+}
+
+.breadcrumb {
+  position: sticky;
+  top: 0;
+  height: 44px;
+  padding: 0 16px;
+  line-height: 44px;
+  font-size: 14px;
+  color: #555;
+  background-color: #fff;
+}
+
+.breadcrumb .delimiter {
+  padding: 0 4px;
+}
+
+table {
+  width: 100%;
+  text-align: left;
+}
+
+tr {
+  height: 44px;
+}
+
+th {
+  font-weight: 500;
+  padding: 0 16px;
+  border-top: 1px solid #deeeff;
+  border-bottom: 1px solid #deeeff;
+}
+
+thead tr {
+  position: sticky;
+  top: 44px;
+  background-color: #fff;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f6faff;
+}
+
+tbody tr:hover {
+  background-color: #e7f3ff;
+}
+
+td {
+  padding: 0 16px;
+  font-size: 14px;
+  color: #555;
+}
+
+.file-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.empty-tips {
+  color: #999;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    color: #ddd;
+    background: #222;
+  }
+
+  .breadcrumb {
+    color: #ccc;
+    background-color: #222;
+  }
+
+  th {
+    border-color: #2b2c2d;
+  }
+
+  thead tr {
+    background-color: #222;
+  }
+  
+  tbody tr:nth-child(even) {
+    background-color: #2b2c2d;
+  }
+  
+  tbody tr:hover {
+    background-color: #373a3e;
+  }
+  
+  td {
+    color: #ccc;
+  }
+}

@@ -24,6 +24,8 @@
     "address": "^2.0.1",
     "ejs": "^3.1.9",
     "filesize": "^10.1.0",
+    "mime": "^3.0.0",
+    "qrcode": "^1.5.3",
     "vscode-icons-js": "^11.6.1"
   }
 }
