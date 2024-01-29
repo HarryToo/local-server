@@ -8,6 +8,7 @@ const { filesize } = require('filesize')
 const QRCode = require('qrcode')
 const { getIconForFile, getIconForFolder } = require('vscode-icons-js')
 
+let EXPOSED_Url
 const CWD = process.cwd()
 
 function getFileIconPath(filename, isDirectory) {
@@ -47,26 +48,38 @@ function renderFilesView(dir) {
     href: '/' + parts.slice(0, i + 1).join('/')
   }))
   const files = getFiles(dir)
-  return ejs.renderFile(ejsPath, {cwd: CWD, breadcrumb, files})
+  return ejs.renderFile(ejsPath, {
+    EXPOSED_Url,
+    CWD,
+    breadcrumb,
+    files,
+  })
 }
 
 function startedLog(port) {
-  const exposedUrl = `http://${ip()}:${port}`
+  EXPOSED_Url = `http://${ip()}:${port}`
   console.log('\nlocal-server is running:')
   console.log(`http://127.0.0.1:${port}`)
-  console.log(exposedUrl)
-  QRCode.toString(exposedUrl, {
+  console.log(EXPOSED_Url)
+  QRCode.toString(EXPOSED_Url, {
     type: 'terminal',
     small: true,
   }, (err, url) => console.log(`\n${url}`))
 }
 
+function getUrl(req) {
+  return req.url.split('?')[0]
+}
+function getReqParams(req) {
+  const search = req.url.split('?')[1]
+  return search ? new URLSearchParams(search) : null
+}
+
 let fsWatcher
 function run(port = 8080) {
   const server = http.createServer(async (req, res) => {
-    let url = req.url.split('?')[0]
-    const search = req.url.split('?')[1]
-    const params = search ? new URLSearchParams(search) : {}
+    let url = getUrl(req)
+    const params = getReqParams(req)
     if (url === '/favicon.ico') {
       url = '/_assets' + url
     }
@@ -77,10 +90,15 @@ function run(port = 8080) {
       const html = await renderFilesView(sourcePath)
       res.end(html)
     } else {
-      const asAttachment = 'attachment' in params
       const source = fs.readFileSync(sourcePath)
       const mimeType = mime.getType(sourcePath)
-      res.setHeader('Content-Type', mimeType)
+      if (mimeType) {
+        res.setHeader('Content-Type', mimeType)
+        res.setHeader('Content-Length', stat.size)
+      }
+      if (params?.has('attachment')) {
+        res.setHeader('Content-Disposition', `attachment; filename="${path.basename(sourcePath)}"`)
+      }
       res.end(source)
     }
   })

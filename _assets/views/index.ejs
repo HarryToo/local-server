@@ -6,10 +6,11 @@
   <title>local-server</title>
   <link rel="icon" href="/_assets/favicon.ico">
   <link rel="stylesheet" href="/_assets/styles/index.css">
+  <script src="/_assets/scripts/qrcode.min.js"></script>
 </head>
 <body>
   <div class="breadcrumb">
-    <a href="/" title="<%= cwd %>">🏠</a>
+    <a href="/" title="<%= CWD %>">🏠</a>
     <% breadcrumb.forEach(function(nav, index) { %>
       <span class="delimiter">/</span>
       <% if (index < breadcrumb.length - 1) { %>
@@ -22,11 +23,11 @@
   <table cellspacing="0">
     <thead>
       <tr>
-        <th style="width: 46%;">Name</th>
-        <th>Size</th>
-        <th style="width: 15%;">Creation Time</th>
-        <th style="width: 15%;">Update Time</th>
-        <th></th>
+        <th>Name</th>
+        <th style="width: 150px;">Size</th>
+        <th style="width: 200px;">Creation Time</th>
+        <th style="width: 200px;">Update Time</th>
+        <th style="width: 200px;"></th>
       </tr>
     </thead>
     <tbody>
@@ -42,11 +43,13 @@
             <td><%= item.size || '-' %></td>
             <td><%= new Date(item.createTime).toLocaleString() %></td>
             <td><%= new Date(item.updateTime).toLocaleString() %></td>
-            <td class="buttons">
-              <% if (!item.isDirectory) { %>
-                <button onclick="location.href = '<%= item.href %>?attachment'">Download</button>
-              <% } %>
-              <button href="">QRCode</button>
+            <td>
+              <div class="buttons">
+                <% if (!item.isDirectory) { %>
+                  <button onclick="download('<%= item.href %>')">Download</button>
+                <% } %>
+                <button onclick="showQRCode('<%= item.href %>', <%= item.isDirectory %>)">QRCode</button>
+              </div>
             </td>
           </tr>
         <% }) %>
@@ -57,5 +60,33 @@
       <% } %>
     </tbody>
   </table>
+
+  <div id="qr-code-wrapper" onclick="this.style.display = 'none'">
+    <canvas></canvas>
+    <p></p>
+  </div>
+
+  <script>
+    function download(href) {
+      location.href = '<%= EXPOSED_Url %>' + href + '?attachment'
+    }
+    function showQRCode(href, isDirectory) {
+      const url = '<%= EXPOSED_Url %>' + href + (isDirectory ? '' : '?attachment')
+      const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+      const qrCodeLayerEl = document.getElementById('qr-code-wrapper')
+      const canvasEl = qrCodeLayerEl.getElementsByTagName('canvas')[0]
+      const filenameEl = qrCodeLayerEl.getElementsByTagName('p')[0]
+      QRCode.toCanvas(canvasEl, url, {
+        width: 200,
+        margin: 1.5,
+        color: {
+          light: isDarkMode ? '#eeeeee' : '#ffffff',
+          dark: isDarkMode ? '#204f7e' : '#3380cd',
+        }
+      })
+      filenameEl.innerText = href
+      qrCodeLayerEl.style.display = 'flex'
+    }
+  </script>
 </body>
 </html>
