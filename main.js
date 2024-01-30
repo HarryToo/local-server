@@ -30,8 +30,8 @@ function getFiles(dir) {
       name: basename,
       isDirectory,
       size: isDirectory ? null : stat.size,
-      createTime: new Date(stat.birthtime),
-      updateTime: new Date(stat.mtime),
+      createTime: stat.birthtime,
+      updateTime: stat.birthtime,
       iconPath: getFileIconPath(basename, isDirectory),
     }
   })

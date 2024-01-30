@@ -122,10 +122,12 @@ button:hover {
 }
 
 .empty-tips {
+  padding: 10vh 0;
+  text-align: center;
   color: #999;
 }
 
-#qr-code-wrapper {
+.qr-code-layer {
   position: fixed;
   left: 0;
   top: 0;
@@ -139,11 +141,11 @@ button:hover {
   background-color: rgba(0, 0, 0, 0.5);
 }
 
-#qr-code-wrapper canvas {
+.qr-code-layer canvas {
   border-radius: 6px;
 }
 
-#qr-code-wrapper p {
+.qr-code-layer p {
   margin-top: 20px;
   font-weight: 500;
   color: #fff;
@@ -185,7 +187,7 @@ button:hover {
     background-color: #204f7e;
   }
 
-  #qr-code-wrapper p {
+  .qr-code-layer p {
     color: #eee;
   }
 }

@@ -46,12 +46,12 @@
           </tr>
         </template>
         <tr v-else>
-          <td colspan="4" class="empty-tips">no file</td>
+          <td colspan="5" class="empty-tips">😭 This is an empty directory</td>
         </tr>
       </tbody>
     </table>
 
-    <div id="qr-code-wrapper" v-show="!!qrFilePath" @click="qrFilePath = null">
+    <div class="qr-code-layer" v-show="!!qrFilePath" @click="qrFilePath = null">
       <canvas></canvas>
       <p>{{qrFilePath}}</p>
     </div>
@@ -102,9 +102,7 @@
         showQRCode(href, isDirectory) {
           const url = this.env.EXPOSED_URL + href + (isDirectory ? '' : '?attachment')
           const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
-          const qrCodeLayerEl = document.getElementById('qr-code-wrapper')
-          const canvasEl = qrCodeLayerEl.getElementsByTagName('canvas')[0]
-          QRCode.toCanvas(canvasEl, url, {
+          QRCode.toCanvas(document.querySelector('canvas'), url, {
             width: 200,
             margin: 1.5,
             color: {
