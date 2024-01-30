@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>local-server</title>
+  <link rel="icon" href="/_assets/favicon.ico">
+  <link rel="stylesheet" href="/_assets/styles/index.css">
+</head>
+<body>
+  <div id="page">
+    <div class="breadcrumb" v-show="breadcrumb.length > 0">
+      <a href="/" :title="env.CWD">🏠</a>
+      <span v-for="(nav, index) in breadcrumb" :key="nav.name" class="delimiter">
+        <span class="delimiter">/</span>
+        <a v-if="index < breadcrumb.length - 1" :href="nav.href" class="nav">{{nav.name}}</a>
+        <span v-else>{{nav.name}}</span>
+      </span>
+    </div>
+    <table cellspacing="0">
+      <thead>
+        <tr>
+          <th v-for="(th, index) in ths" :key="th.label" :style="{width: th.width}"
+          :class="{sortable: th.sort !== undefined, up: th.sort === 1, down: th.sort === -1}"
+          @click="sort(index)">{{th.label}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <template v-if="files.length > 0">
+          <tr v-for="item in files" :key="item.name">
+            <td>
+              <a :href="item.href">
+                <img :src="item.iconPath" class="file-icon">
+                <span>{{item.name}}</span>
+              </a>
+            </td>
+            <td>{{item.size ? filesize(item.size) : '-'}}</td>
+            <td>{{item.createTime.toLocaleString()}}</td>
+            <td>{{item.updateTime.toLocaleString()}}</td>
+            <td>
+              <div class="buttons">
+                <button v-if="!item.isDirectory" @click="location.href = env.EXPOSED_URL + item.href + '?attachment'">Download</button>
+                <button @click="showQRCode(item.href, item.isDirectory)">QRCode</button>
+              </div>
+            </td>
+          </tr>
+        </template>
+        <tr v-else>
+          <td colspan="4" class="empty-tips">no file</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div id="qr-code-wrapper" v-show="!!qrFilePath" @click="qrFilePath = null">
+      <canvas></canvas>
+      <p>{{qrFilePath}}</p>
+    </div>
+  </div>
+
+  <script src="/_assets/scripts/vue.min.js"></script>
+  <script src="/_assets/scripts/filesize.min.js"></script>
+  <script src="/_assets/scripts/qrcode.min.js"></script>
+  <script>
+    new Vue({
+      el: '#page',
+      data: {
+        env: {
+          EXPOSED_Url: '',
+          CWD: '',
+        },
+        ths: [
+          {label: 'Name', key: 'name', sort: 0},
+          {label: 'Size', key: 'size', width: '150px', sort: 0},
+          {label: 'Creation Time', key: 'createTime', width: '200px', sort: 0},
+          {label: 'Update Time', key: 'updateTime', width: '200px', sort: 0},
+          {label: '', width: '200px'},
+        ],
+        breadcrumb: [],
+        files: `<%=files%>`,
+        qrFilePath: null,
+      },
+      created() {
+        this.getEnvVar()
+        const parts = location.pathname.split('/').slice(1)
+        this.breadcrumb = parts.map((part, i) => ({
+          name: part,
+          href: '/' + parts.slice(0, i + 1).join('/')
+        }))
+        this.files = this.files.map((file, index) => {
+          file.createTime = new Date(file.createTime)
+          file.updateTime = new Date(file.updateTime)
+          return file
+        })
+      },
+      methods: {
+        filesize,
+        getEnvVar() {
+          fetch('/api/getEnvVar').then(res => res.json()).then(data => {
+            this.env = data
+          })
+        },
+        showQRCode(href, isDirectory) {
+          const url = this.env.EXPOSED_URL + href + (isDirectory ? '' : '?attachment')
+          const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const qrCodeLayerEl = document.getElementById('qr-code-wrapper')
+          const canvasEl = qrCodeLayerEl.getElementsByTagName('canvas')[0]
+          QRCode.toCanvas(canvasEl, url, {
+            width: 200,
+            margin: 1.5,
+            color: {
+              light: isDarkMode ? '#eeeeee' : '#ffffff',
+              dark: isDarkMode ? '#204f7e' : '#3380cd',
+            }
+          })
+          this.qrFilePath = href
+        },
+        sort(colIndex) {
+          const hitTh = this.ths[colIndex]
+          if (hitTh.sort !== undefined) {
+            this.ths.forEach((th, index) => {
+              if (index === colIndex) {
+                th.sort = th.sort === -1 ? 1 : -1
+              } else if (th.sort !== undefined) {
+                th.sort = 0
+              }
+            })
+            if (this.files.length > 1) {
+              this.files.sort((a, b) => {
+                if (typeof a[hitTh.key] === 'string') {
+                  if (hitTh.sort === -1 ) {
+                    return b[hitTh.key].localeCompare(a[hitTh.key])
+                  } else  if (hitTh.sort === 1 ) {
+                    return a[hitTh.key].localeCompare(b[hitTh.key])
+                  }
+                } else {
+                  if (hitTh.sort === -1 ) {
+                    return b[hitTh.key] - a[hitTh.key]
+                  } else  if (hitTh.sort === 1 ) {
+                    return a[hitTh.key] - b[hitTh.key]
+                  }
+                }
+              })
+            }
+          }
+        }
+      }
+    })
+  </script>
+</body>
+</html>

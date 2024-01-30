@@ -1,14 +1,12 @@
 const fs = require('fs')
 const path = require('path')
 const http = require('http')
-const ejs = require('ejs')
 const { ip } = require('address')
 const mime = require('mime')
-const { filesize } = require('filesize')
 const QRCode = require('qrcode')
 const { getIconForFile, getIconForFolder } = require('vscode-icons-js')
 
-let EXPOSED_Url
+let EXPOSED_URL
 const CWD = process.cwd()
 
 function getFileIconPath(filename, isDirectory) {
@@ -31,7 +29,7 @@ function getFiles(dir) {
       href: '/' + path.relative(CWD, path.join(dir, item)),
       name: basename,
       isDirectory,
-      size: isDirectory ? '' : filesize(stat.size),
+      size: isDirectory ? null : stat.size,
       createTime: new Date(stat.birthtime),
       updateTime: new Date(stat.mtime),
       iconPath: getFileIconPath(basename, isDirectory),
@@ -39,29 +37,12 @@ function getFiles(dir) {
   })
 }
 
-function renderFilesView(dir) {
-  const ejsPath = path.join(__dirname, '_assets/views/index.ejs')
-  const relativePath = dir.replace(CWD, '')
-  const parts = relativePath.split('/').slice(1)
-  const breadcrumb = parts.map((part, i) => ({
-    name: part,
-    href: '/' + parts.slice(0, i + 1).join('/')
-  }))
-  const files = getFiles(dir)
-  return ejs.renderFile(ejsPath, {
-    EXPOSED_Url,
-    CWD,
-    breadcrumb,
-    files,
-  })
-}
-
 function startedLog(port) {
-  EXPOSED_Url = `http://${ip()}:${port}`
+  EXPOSED_URL = `http://${ip()}:${port}`
   console.log('\nlocal-server is running:')
   console.log(`http://127.0.0.1:${port}`)
-  console.log(EXPOSED_Url)
-  QRCode.toString(EXPOSED_Url, {
+  console.log(EXPOSED_URL)
+  QRCode.toString(EXPOSED_URL, {
     type: 'terminal',
     small: true,
   }, (err, url) => console.log(`\n${url}`))
@@ -75,26 +56,44 @@ function getReqParams(req) {
   return search ? new URLSearchParams(search) : null
 }
 
+function initApis(req, res) {
+  const url = getUrl(req)
+  const params = getReqParams(req)
+  res.writeHead(200, {'Content-Type': 'application/json'})
+  if (url === '/api/getEnvVar') {
+    res.end(JSON.stringify({
+      EXPOSED_URL,
+      CWD,
+    }))
+  }
+}
+
 let fsWatcher
 function run(port = 8080) {
   const server = http.createServer(async (req, res) => {
     let url = getUrl(req)
     const params = getReqParams(req)
-    if (url === '/favicon.ico') {
-      url = '/_assets' + url
-    }
-    let basePath = url.startsWith('/_assets') ? __dirname : CWD
-    let sourcePath = path.join(basePath, url)
-    const stat = fs.statSync(sourcePath)
-    if (stat.isDirectory()) {
-      const html = await renderFilesView(sourcePath)
-      res.end(html)
+    if (url.startsWith('/api')) {
+      initApis(req, res)
     } else {
-      const source = fs.readFileSync(sourcePath)
+      if (url === '/favicon.ico') {
+        url = '/_assets' + url
+      }
+      let basePath = url.startsWith('/_assets') ? __dirname : CWD
+      let sourcePath = path.join(basePath, url), source
+      if (!fs.existsSync(sourcePath)) {
+        sourcePath = path.join(__dirname, '_assets/views/404.html')
+      }
+      if (fs.statSync(sourcePath).isDirectory()) {
+        const files = getFiles(sourcePath)
+        sourcePath = path.join(__dirname, '_assets/views/index.html')
+        source = fs.readFileSync(sourcePath, 'utf-8').replace('\`<%=files%>\`', JSON.stringify(files))
+      } else {
+        source = fs.readFileSync(sourcePath)
+      }
       const mimeType = mime.getType(sourcePath)
       if (mimeType) {
         res.setHeader('Content-Type', mimeType)
-        res.setHeader('Content-Length', stat.size)
       }
       if (params?.has('attachment')) {
         res.setHeader('Content-Disposition', `attachment; filename="${path.basename(sourcePath)}"`)

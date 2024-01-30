@@ -49,6 +49,28 @@ th {
   border-bottom: 1px solid #deeeff;
 }
 
+th.sortable {
+  cursor: pointer;
+}
+
+th.sortable:hover {
+  opacity: 0.8;
+}
+
+th.sortable.up, th.sortable.down {
+  background-repeat: no-repeat;
+  background-position: calc(100% - 16px) center;
+  background-size: auto 20px;
+}
+
+th.sortable.up {
+  background-image: url('/_assets/images/arrow-up.png');
+}
+
+th.sortable.down {
+  background-image: url('/_assets/images/arrow-down.png');
+}
+
 thead tr {
   position: sticky;
   top: 44px;
@@ -104,13 +126,13 @@ button:hover {
 }
 
 #qr-code-wrapper {
-  display: none;
   position: fixed;
   left: 0;
   top: 0;
   z-index: 999;
   width: 100%;
   height: 100%;
+  display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;

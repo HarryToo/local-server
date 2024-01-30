@@ -1,7 +1,7 @@
 {
   "name": "@ht/local-server",
   "version": "0.0.1",
-  "description": "简单的本地文件静态服务，可作为局域网共共享文件使用",
+  "description": "A simple local file static service that can be used to share files with mobile devices within the local area network",
   "main": "main.js",
   "bin": {
     "local-server": "./cli.js"
@@ -12,7 +12,8 @@
   "keywords": [
     "本地服务",
     "局域网共享",
-    "local server"
+    "local server",
+    "share file"
   ],
   "author": "HarryToo",
   "license": "ISC",
@@ -22,8 +23,6 @@
   },
   "dependencies": {
     "address": "^2.0.1",
-    "ejs": "^3.1.9",
-    "filesize": "^10.1.0",
     "mime": "^3.0.0",
     "qrcode": "^1.5.3",
     "vscode-icons-js": "^11.6.1"
